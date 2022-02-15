@@ -23,6 +23,7 @@ void UMYHealthComponent::BeginPlay()
     Super::BeginPlay();
 
     Health = MaxHealth;
+    OnHealthChanged.Broadcast(Health);
 
     AActor* ComponentOwner = GetOwner();
     if (ComponentOwner)
@@ -34,17 +35,25 @@ void UMYHealthComponent::BeginPlay()
 void UMYHealthComponent::OnTakeAnyDamageHandler(
     AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-    Health -= Damage;
+    if (Damage <= 0.0f || IsDead())
+        return;
+    Health = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
+    OnHealthChanged.Broadcast(Health);
 
-    if (DamageType)
+    if (IsDead())
     {
-        if (DamageType->IsA<UMYFireDamageType>())
-        {
-            UE_LOG(LogHealthComponent, Display, TEXT("FIRE !!!"));
-        }
-        else if (DamageType->IsA<UMYIceDamageType>())
-        {
-            UE_LOG(LogHealthComponent, Display, TEXT("COLD !!!"));
-        }
+        OnDeath.Broadcast();
     }
+
+    //    if (DamageType)
+    //  {
+    //    if (DamageType->IsA<UMYFireDamageType>())
+    //   {
+    //      UE_LOG(LogHealthComponent, Display, TEXT("FIRE !!!"));
+    // }
+    // else if (DamageType->IsA<UMYIceDamageType>())
+    //{
+    //   UE_LOG(LogHealthComponent, Display, TEXT("COLD !!!"));
+    //}
+    //}
 }

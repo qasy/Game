@@ -31,6 +31,8 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
     class UTextRenderComponent* HealthTextComponent;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    class UAnimMontage* DeathAnimMontage;
 
     void MoveForward(float Amount);
 
@@ -47,6 +49,10 @@ protected:
 
     // Request for Character to EndCrouch
     void EndCrouch();
+
+    // Action when character dies
+    void OnDeath();
+    void OnHealthChanged(float Health);
 
 public:
     // Called every frame

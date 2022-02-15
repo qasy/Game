@@ -7,6 +7,8 @@
 #include <Player/Components/MYHealthComponent.h>
 #include <Components/TextRenderComponent.h>
 
+DEFINE_LOG_CATEGORY_STATIC(LogBaseCharacter, All, All)
+
 // Sets default values
 AMYBaseCharacter::AMYBaseCharacter()
 {
@@ -37,15 +39,22 @@ void AMYBaseCharacter::BeginPlay()
     Super::BeginPlay();
     check(HealthComponent);
     check(HealthTextComponent);
+    check(GetCharacterMovement());
+
+    OnHealthChanged(HealthComponent->GetHealth());
+    HealthComponent->OnDeath.AddUObject(this, &AMYBaseCharacter::OnDeath);
+    HealthComponent->OnHealthChanged.AddUObject(this, &AMYBaseCharacter::OnHealthChanged);
+}
+
+void AMYBaseCharacter::OnHealthChanged(float Health)
+{
+    HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
 }
 
 // Called every frame
 void AMYBaseCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    const float Health = HealthComponent->GetHealth();
-    HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
 
     // TakeDamage(0.1f, FDamageEvent(), nullptr, this);
 }
@@ -103,4 +112,18 @@ void AMYBaseCharacter::BeginCrouch()
 void AMYBaseCharacter::EndCrouch()
 {
     UnCrouch();
+}
+
+void AMYBaseCharacter::OnDeath()
+{
+    UE_LOG(LogBaseCharacter, Display, TEXT("Player %s is dead"), *GetName());
+
+    // Playing death animation
+    PlayAnimMontage(DeathAnimMontage);
+
+    // Disabling movement of our character
+    GetCharacterMovement()->DisableMovement();
+
+    // Destroying our character
+    SetLifeSpan(5.0f);
 }
